@@ -1,5 +1,5 @@
 import numpy as np
-import src.NeuralNet.Config as Config
+import NeuralNet.Config as Config
 
 ActivationFunctions = {
     'Identity': lambda x: x,
@@ -14,6 +14,7 @@ ActivationFunctions = {
 def fromUnraveled(unraveled, topology):
     newNet = NeuralNetwork(topology, False)
     cursor = 0
+    print('-------Reshape NeuralNet----------')
     print('starting size: ', unraveled.shape[0])
     for i in range(1, len(topology)):
         newNet.layers.append(
@@ -26,7 +27,7 @@ def fromUnraveled(unraveled, topology):
 
 
 class NeuralNetwork:
-    def __init__(self, topology, initWeights=True):
+    def __init__(self, topology=Config.Topology, initWeights=True):
         self.topology = topology
         self.layers = []
         if initWeights:
@@ -36,15 +37,16 @@ class NeuralNetwork:
                                                    topology[i]))  # init weights as [-StartingWeight, StartingWeight)
                 newLayer = np.r_[newLayer, [np.zeros(topology[i])]]  # biases, init at 0
                 self.layers.append(newLayer)
+            print('-------Init NeuralNet----------')
             for layer in self.layers:
                 print(layer.shape)
         self.hiddenActivationFunction = ActivationFunctions[Config.HiddenActivationFunction]
         self.outputActivationFunction = ActivationFunctions[Config.OutputActivationFunction]
 
     def unraveled(self):
-        unraveled = self.layers[0].ravel()
+        unraveled = self.layers[0].flatten()
         for i in range(1, len(self.layers)):
-            unraveled = np.r_[unraveled, self.layers[i].ravel()]
+            unraveled = np.r_[unraveled, self.layers[i].flatten()]
         return unraveled
 
     def unraveledLength(self):

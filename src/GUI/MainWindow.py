@@ -1,8 +1,8 @@
 import tkinter as tk
 import numpy as np
-import src.SnakeEngine.SnakeRunner as SnakeRunner
-import src.NeuralNet.Network as Network
-import src.GeneticAlgorithm.CrossOver as CrossOver
+import SnakeEngine.SnakeRunner as SnakeRunner
+import NeuralNet.Network as Network
+import GeneticAlgorithm.CrossOver as CrossOver
 
 
 # config
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     nn2 = Network.NeuralNetwork([40, 10, 25, 4])
     # print(nn.feedForward(np.random.uniform(0, 3, (1, 40))))
 
-    CrossOver.uniformCrossover(nn1, nn2)
+    CrossOver.UniformCrossover(nn1, nn2)
     mw = MainWindow()
     controlPreview = SnakeRunner.ControllerPreview(ManualController(mw), mw.mainCanvas, CanvasSize)
 
