@@ -1,5 +1,5 @@
 import numpy as np
-import NeuralNet.Config as Config
+import src.NeuralNet.Config as Config
 
 ActivationFunctions = {
     'Identity': lambda x: x,
