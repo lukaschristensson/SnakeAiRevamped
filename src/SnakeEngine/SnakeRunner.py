@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 # config
 BoardSize = [20, 20]
@@ -140,7 +141,9 @@ class ControllerPreview:
         if rulesRes:
             self.drawGame()
             if self.netCanvas:
+                startTime = time.time()
                 self.drawNet(activations, self.netCanvas, self.controller.brain.layers)
+                print('Time to display netCanvas: ', (time.time() - startTime) * 1000, 'ms')
             if rulesRes == 'Apple':
                 self.stepsTakenSinceApple = 0
             return True
