@@ -64,6 +64,7 @@ def UniformCrossover(net1, net2):
     import NeuralNet.Network as Network
     return Network.fromUnraveled(res1, resTopology), Network.fromUnraveled(res1, resTopology)
 
+
 CrossOverFunctions = {
     'UniformCrossover': UniformCrossover,
     'SinglePointCrossover': SinglePointCrossover,

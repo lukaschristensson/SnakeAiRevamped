@@ -1,12 +1,12 @@
 import tkinter as tk
 import numpy as np
 import SnakeEngine.SnakeRunner as SnakeRunner
-import NeuralNet.Network as Network
-import GeneticAlgorithm.CrossOver as CrossOver
-
+import GUI.SnakeManager as SnakeManager
+import threading
 
 # config
 CanvasSize = [400, 400]
+NetCanvasSize = [600, 600]
 MovesPerSecond = 5
 
 
@@ -16,6 +16,8 @@ class MainWindow(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         self.mainCanvas = tk.Canvas(width=CanvasSize[0], height=CanvasSize[1])
         self.mainCanvas.grid(row=0, column=0)
+        self.netCanvas = tk.Canvas(width=NetCanvasSize[0], height=NetCanvasSize[1])
+        self.netCanvas.grid(row=0, column=1)
 
 
 class ManualController:
@@ -36,19 +38,21 @@ class ManualController:
 
 
 if __name__ == '__main__':
-    nn1 = Network.NeuralNetwork([40, 10, 25, 4])
-    nn2 = Network.NeuralNetwork([40, 10, 25, 4])
-    # print(nn.feedForward(np.random.uniform(0, 3, (1, 40))))
 
-    CrossOver.UniformCrossover(nn1, nn2)
     mw = MainWindow()
-    controlPreview = SnakeRunner.ControllerPreview(ManualController(mw), mw.mainCanvas, CanvasSize)
+    manager = SnakeManager.SnakeManager()
+    mc = ManualController(mw)
+    controlPreview = SnakeRunner.ControllerPreview(manager.bestSnake, mw.mainCanvas, CanvasSize, mw.netCanvas)
 
 
     def stepAndDrawLoop():
-        if controlPreview.stepAndDraw():
-            mw.mainCanvas.after(int(np.round(1000 / MovesPerSecond)), stepAndDrawLoop)
+        if not controlPreview.stepAndDraw():
+            controlPreview.reset(manager.bestSnake)
+        mw.mainCanvas.after(int(np.round(1000 / MovesPerSecond)), stepAndDrawLoop)
 
 
-    stepAndDrawLoop()
+    mw.after(1, stepAndDrawLoop)
+    t = threading.Thread(target=manager.runPopulation)
+    t.setDaemon(True)
+    t.start()
     mw.mainloop()

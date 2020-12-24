@@ -14,16 +14,23 @@ ActivationFunctions = {
 def fromUnraveled(unraveled, topology):
     newNet = NeuralNetwork(topology, False)
     cursor = 0
-    print('-------Reshape NeuralNet----------')
-    print('starting size: ', unraveled.shape[0])
     for i in range(1, len(topology)):
         newNet.layers.append(
             unraveled[cursor:cursor + (topology[i - 1] + 1) * topology[i]]
             .reshape(topology[i - 1] + 1, topology[i])
         )
-        print((topology[i - 1] + 1) * topology[i], ' with ', unraveled.shape[0] - ((topology[i - 1] + 1) * topology[i]) - cursor, 'left')
         cursor += (topology[i - 1] + 1) * topology[i]
     return newNet
+
+
+def ReLU(x):
+    return x * (0 < x)
+
+
+def Sigmoid(x):
+    import warnings
+    warnings.filterwarnings("ignore", category=RuntimeWarning)  # surpress annoying sigmoid func warnings, it results from putting ReLU values into sigmoids(kinda)
+    return 1 / (1 + np.e ** (-x))
 
 
 class NeuralNetwork:
@@ -37,11 +44,8 @@ class NeuralNetwork:
                                                    topology[i]))  # init weights as [-StartingWeight, StartingWeight)
                 newLayer = np.r_[newLayer, [np.zeros(topology[i])]]  # biases, init at 0
                 self.layers.append(newLayer)
-            print('-------Init NeuralNet----------')
-            for layer in self.layers:
-                print(layer.shape)
-        self.hiddenActivationFunction = ActivationFunctions[Config.HiddenActivationFunction]
-        self.outputActivationFunction = ActivationFunctions[Config.OutputActivationFunction]
+        self.hiddenActivationFunction = ReLU  # ActivationFunctions[Config.HiddenActivationFunction] UNDER CONSTRUCTION
+        self.outputActivationFunction = Sigmoid     # ActivationFunctions[Config.OutputActivationFunction] UNDER CONSTRUCTION
 
     def unraveled(self):
         unraveled = self.layers[0].flatten()
@@ -52,8 +56,12 @@ class NeuralNetwork:
     def unraveledLength(self):
         return self.unraveled().shape[0]
 
-    def feedForward(self, inputData):
-        a = inputData
-        for layer in range(0, len(self.layers) - 1):
-            a = self.hiddenActivationFunction(np.c_[a, np.ones((1, a.shape[0]))].dot(self.layers[layer]))
-        return self.outputActivationFunction(np.c_[a, np.ones((1, a.shape[0]))].dot(self.layers[-1]))
+    def feedForward(self, inputData, fetchActivations=False):
+        a = [np.append(inputData, 1), self.hiddenActivationFunction(np.append(inputData, 1).dot(self.layers[0]))]
+        for layer in range(1, len(self.layers) - 1):
+            a.append(self.hiddenActivationFunction(np.append(a[-1], 1).dot(self.layers[layer])))
+        a.append(self.outputActivationFunction(np.append(a[-1], 1).dot(self.layers[-1])))
+        if fetchActivations:
+            return a[-1], a
+        else:
+            return a[-1]

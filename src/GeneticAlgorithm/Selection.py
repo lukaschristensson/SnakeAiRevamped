@@ -3,7 +3,7 @@ import numpy as np
 
 def RouletteWheelSelection(Population, numberOfIndividuals):
     NewPopulation = []
-    for _ in numberOfIndividuals:
+    for _ in range(numberOfIndividuals):
         totalFitness = 0
         for individual in Population:
             totalFitness += individual.getFitness()
@@ -12,7 +12,7 @@ def RouletteWheelSelection(Population, numberOfIndividuals):
         cursor = 0
         while totalFitness < chosenIndividual:
             cursor += 1
-            totalFitness += [cursor]
+            totalFitness += Population[cursor].getFitness()
         NewPopulation.append(Population[cursor])
         del Population[cursor]
     return NewPopulation
@@ -21,9 +21,19 @@ def RouletteWheelSelection(Population, numberOfIndividuals):
 def RankSelection(Population, numberOfIndividuals):
     NewPopulation = []
     for _ in numberOfIndividuals:
-        TotalPoints = len(Population) * (len(Population) + 1) / 2
-
-
-
-
+        totalPoints = len(Population) * (len(Population) + 1) / 2
+        chosenIndividual = np.random.rand() * totalPoints
+        totalPoints = len(Population)
+        cursor = 0
+        while totalPoints < chosenIndividual:
+            cursor += 1
+            totalPoints += len(Population) - cursor
+        NewPopulation.append(Population[cursor])
+        del NewPopulation[cursor]
     return NewPopulation
+
+
+SelectionFunctions = {
+    'RouletteWheelSelection': RouletteWheelSelection,
+    'RankSelection': RankSelection
+}
