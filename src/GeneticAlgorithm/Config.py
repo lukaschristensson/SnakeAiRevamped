@@ -1,6 +1,6 @@
 MutationRate = 0.001
 MutationFunction = 'StandardMutation'
-CrossoverFunction = 'TwoPointCrossover'
+CrossoverFunction = 'UniformCrossover'
 SelectionFunction = 'RouletteWheelSelection'
 LifeSpan = 4
 PopulationSize = 200

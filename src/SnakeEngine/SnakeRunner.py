@@ -58,7 +58,8 @@ def checkRules(snake=None, apple=None, stepsTakenSinceApple=None, mute=True):
         if not mute:
             print('starved')
         return None
-    if BoardSize[0] <= snake[0][0] or snake[0][0] < 0 or BoardSize[1] <= snake[0][1] or snake[0][1] < 0:  # Boundary check
+    if BoardSize[0] <= snake[0][0] or snake[0][0] < 0 or BoardSize[1] <= snake[0][1] or snake[0][
+        1] < 0:  # Boundary check
         if not mute:
             print('hit wall')
         return None
@@ -88,7 +89,7 @@ def runForFitness(controller):
     currentDirection = "North"  # init currentDirection
     stepsTaken = 0  # init a counter to keep track of the amount of steps taken
     stepsTakenSinceApple = 0
-    snake = [[int(np.round(BoardSize[0]/2)), int(np.round(BoardSize[1]/2))]]  # set the starting point
+    snake = [[int(np.round(BoardSize[0] / 2)), int(np.round(BoardSize[1] / 2))]]  # set the starting point
     for i in range(SnakeInitSize - 1):  # add tail pieces, [-1, -1] is for all intents and purposes non initialized
         snake.append([-1, -1])
     apple = generateApplePos(snake)  # init apple to a random point
@@ -118,7 +119,7 @@ class ControllerPreview:
         self.blockSize = np.min(CanvasSize) / np.max(BoardSize)
 
         self.controller = controller
-        self.snake = [[int(np.round(BoardSize[0]/2)), int(np.round(BoardSize[1]/2))]]   # set the starting point
+        self.snake = [[int(np.round(BoardSize[0] / 2)), int(np.round(BoardSize[1] / 2))]]  # set the starting point
         self.stepsTaken = 0  # init a counter to keep track of the amount of steps taken
         self.stepsTakenSinceApple = 0
         for i in range(SnakeInitSize - 1):  # add tail pieces, [-1, -1] is for all intents and purposes non initialized
@@ -129,25 +130,31 @@ class ControllerPreview:
 
     def stepAndDraw(self):
         if self.netCanvas:
-            self.currentDirection, activations = self.controller.nextDir(BoardSize, self.snake.copy(), self.apple, self.currentDirection, fetchActivations=True)
+            self.currentDirection, activations = self.controller.nextDir(BoardSize, self.snake.copy(), self.apple,
+                                                                         self.currentDirection, fetchActivations=True)
         else:
-            self.currentDirection = self.controller.nextDir(BoardSize, self.snake.copy(), self.apple, self.currentDirection)
+            self.currentDirection = self.controller.nextDir(BoardSize, self.snake.copy(), self.apple,
+                                                            self.currentDirection)
         advanceSnake(self.snake, self.currentDirection)
         self.stepsTaken += 1
         self.stepsTakenSinceApple += 1
 
         rulesRes = checkRules(self.snake, self.apple, self.stepsTakenSinceApple, mute=True)
         if rulesRes:
+            import tkinter as tk
+            self.canvas.delete(tk.ALL)
+            if self.netCanvas:
+                self.netCanvas.delete(tk.ALL)
             self.drawGame()
             if self.netCanvas:
-                self.drawNet(activations, self.netCanvas, self.controller.brain.layers)
+                self.drawNet(activations, self.netCanvas, self.controller.brain.layers.copy())
             if rulesRes == 'Apple':
                 self.stepsTakenSinceApple = 0
             return True
         return False
 
     def reset(self, newController):
-        self.snake = [[int(np.round(BoardSize[0]/2)), int(np.round(BoardSize[1]/2))]]   # set the starting point
+        self.snake = [[int(np.round(BoardSize[0] / 2)), int(np.round(BoardSize[1] / 2))]]  # set the starting point
         for i in range(SnakeInitSize - 1):  # add tail pieces, [-1, -1] is for all intents and purposes non initialized
             self.snake.append([-1, -1])
         self.controller = newController
@@ -169,7 +176,6 @@ class ControllerPreview:
             self.__drawBox__(self.snake[i][0], self.snake[i][1], 'forest green')
         self.__drawBox__(self.apple[0], self.apple[1], 'red')
 
-
     '''
         this shit is ripped straight out of the first project, it kinda looked cool and i can't be arsed to redo it
     '''
@@ -187,7 +193,7 @@ class ControllerPreview:
 
         # make the background gray
         netCanvas.create_rectangle(0, 0, netCanvas.winfo_width(), netCanvas.winfo_height(), fill='#aaa',
-                                        outline="")
+                                   outline="")
 
         # amount of layers in the net
         layerCount = len(activations)
@@ -231,14 +237,14 @@ class ControllerPreview:
 
                     if weightColor < 0:
                         netCanvas.create_line(posOfFromOrb[0], posOfFromOrb[1], posOfToOrb[0], posOfToOrb[1],
-                                                   width=1,
-                                                   fill=ColorFromrgb(
-                                                       (255, 255 + weightColor, 255 + weightColor)))
+                                              width=1,
+                                              fill=ColorFromrgb(
+                                                  (255, 255 + weightColor, 255 + weightColor)))
                     else:
                         netCanvas.create_line(posOfFromOrb[0], posOfFromOrb[1], posOfToOrb[0], posOfToOrb[1],
-                                                   width=1,
-                                                   fill=ColorFromrgb(
-                                                       (255 - weightColor, 255, 255 - weightColor)))
+                                              width=1,
+                                              fill=ColorFromrgb(
+                                                  (255 - weightColor, 255, 255 - weightColor)))
         # draw activation orbs
         for i in range(layerCount):
             for j in range(len(activations[i])):

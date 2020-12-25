@@ -41,8 +41,9 @@ class NeuralNetwork:
             for i in range(1, len(topology)):
                 newLayer = np.random.uniform(-Config.StartingWeight, Config.StartingWeight,
                                              size=(topology[i - 1],
-                                                   topology[i]))  # init weights as [-StartingWeight, StartingWeight)
-                newLayer = np.r_[newLayer, [np.zeros(topology[i])]]  # biases, init at 0
+                                                   topology[i])).astype(dtype=np.float128)  # init weights as [-StartingWeight, StartingWeight)
+
+                newLayer = np.r_[newLayer, [np.random.uniform(Config.BiasStartingWeight[0], Config.BiasStartingWeight[1], topology[i])]].astype(dtype=np.float128)  # biases, init at 1
                 self.layers.append(newLayer)
         self.hiddenActivationFunction = ReLU  # ActivationFunctions[Config.HiddenActivationFunction] UNDER CONSTRUCTION
         self.outputActivationFunction = Sigmoid     # ActivationFunctions[Config.OutputActivationFunction] UNDER CONSTRUCTION
@@ -57,10 +58,10 @@ class NeuralNetwork:
         return self.unraveled().shape[0]
 
     def feedForward(self, inputData, fetchActivations=False):
-        a = [np.append(inputData, 1), self.hiddenActivationFunction(np.append(inputData, 1).dot(self.layers[0]))]
+        a = [np.append(inputData, 1), np.append(self.hiddenActivationFunction(np.append(inputData, 1).dot(self.layers[0])), 1)]
         for layer in range(1, len(self.layers) - 1):
-            a.append(self.hiddenActivationFunction(np.append(a[-1], 1).dot(self.layers[layer])))
-        a.append(self.outputActivationFunction(np.append(a[-1], 1).dot(self.layers[-1])))
+            a.append(np.append(self.hiddenActivationFunction(a[-1].dot(self.layers[layer])), 1))
+        a.append(self.hiddenActivationFunction(a[-1].dot(self.layers[-1])))
         if fetchActivations:
             return a[-1], a
         else:
