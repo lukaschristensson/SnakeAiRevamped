@@ -1,9 +1,9 @@
 import numpy as np
 
 # config
-BoardSize = [20, 20]
+BoardSize = [10, 10]
 SnakeInitSize = 4
-StepsUntilStarve = 150
+StepsUntilStarve = 70
 # util/enum
 Directions = {
     "North": [0, -1],
@@ -250,9 +250,13 @@ class ControllerPreview:
             for j in range(len(activations[i])):
                 fill = ""
                 # activationStrength is calculated as a percentage of the largest activation
-                nodeActivationStrength = int(np.round(255 * (activations[i][j] / np.max(activations[i]))))
+                nodeActivationStrength = int(np.round(255 * ((activations[i][j] / np.max(activations[i])) if np.max(activations[i]) != 0 else 0)))
                 if j == len(activations[i]) - 1 and i != layerCount - 1:
                     fill = ColorFromrgb((0, 0, nodeActivationStrength))
+                elif j >= len(activations[i]) - 5 and i == 0:
+                    fill = ColorFromrgb((0, nodeActivationStrength, nodeActivationStrength))
+                elif j >= len(activations[i]) - 9 and i == 0:
+                    fill = ColorFromrgb((nodeActivationStrength, nodeActivationStrength, 0))
                 else:
                     fill = ColorFromrgb((nodeActivationStrength, 0, nodeActivationStrength))
 

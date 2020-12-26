@@ -16,12 +16,15 @@ def runGeneration(snakePopulation, returnQueue, mutationFunction, crossoverFunct
     for i in range(len(parents)):
         parent1 = parents[int(np.floor(np.random.uniform(0, len(parents))))]
         parent2 = parents[int(np.floor(np.random.uniform(0, len(parents))))]
-        childNets1 = crossoverFunction(parents[i].brain, parent1.brain)
-        childNets2 = crossoverFunction(parents[i].brain, parent2.brain)
-        snakePopulation.append(Snake.Snake(mutationFunction(childNets1[0])))
-        snakePopulation.append(Snake.Snake(mutationFunction(childNets1[1])))
-        snakePopulation.append(Snake.Snake(mutationFunction(childNets2[0])))
-        snakePopulation.append(Snake.Snake(mutationFunction(childNets2[1])))
+
+        childNet1, childNet2 = crossoverFunction(parents[i].brain, parent1.brain)
+        childNet3, childNet4 = crossoverFunction(parents[i].brain, parent2.brain)
+
+        snakePopulation.append(Snake.Snake(mutationFunction(childNet1)))
+        snakePopulation.append(Snake.Snake(mutationFunction(childNet2)))
+        snakePopulation.append(Snake.Snake(mutationFunction(childNet3)))
+        snakePopulation.append(Snake.Snake(mutationFunction(childNet4)))
+
     for s in snakePopulation:
         s.calculateFitness()
     for s in [s for s in snakePopulation if s.lifeSpan < 0]:
@@ -67,6 +70,7 @@ class SnakeManager:
             for s in self.snakePopulation:
                 s.lifeSpan -= 1
             print(str(np.round((time.time() - self.startTime), 4)) + "s", "::", "Best fitness =", self.bestFitness)
+            print(np.sum(self.bestSnake.brain.layers[0]))
             SnakeManager.generation += 1
             if False:
                 self.currentUsage = psutil.Process(os.getpid()).memory_info().rss

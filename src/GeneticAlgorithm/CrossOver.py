@@ -1,4 +1,5 @@
 import numpy as np
+import GeneticAlgorithm.Config as Config
 
 
 def NPointCrossover(net1, net2, n):
@@ -65,9 +66,27 @@ def UniformCrossover(net1, net2):
     return Network.fromUnraveled(res1, resTopology), Network.fromUnraveled(res1, resTopology)
 
 
+def SimulatedBinaryCrossover(net1, net2):
+    assert net1.topology == net2.topology
+    resTopology = net1.topology
+    net1 = net1.unraveled()
+    net2 = net2.unraveled()
+    rand = np.random.random(net1.shape)
+    beta = np.empty(net1.shape)
+
+    beta[rand <= 0.5] = (2 * rand[rand <= 0.5]) ** (1 / (Config.eta + 1))
+    beta[rand > 0.5] = (2 * rand[rand > 0.5]) ** (1 / (Config.eta + 1))
+
+    c1 = 0.5 * ((1 + beta) * net1 + (1 - beta) * net2)
+    c2 = 0.5 * ((1 - beta) * net1 + (1 + beta) * net2)
+    import NeuralNet.Network as Network
+    return Network.fromUnraveled(c1, resTopology), Network.fromUnraveled(c2, resTopology)
+
+
 CrossOverFunctions = {
     'UniformCrossover': UniformCrossover,
     'SinglePointCrossover': SinglePointCrossover,
     'TwoPointCrossover': TwoPointCrossover,
-    'NPointCrossover': NPointCrossover
+    'NPointCrossover': NPointCrossover,
+    'SimulatedBinaryCrossover': SimulatedBinaryCrossover
 }

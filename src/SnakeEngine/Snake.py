@@ -29,13 +29,14 @@ def calculate8Rays(BoardSize, snake, apple):
             posCursor[1] += directions[d][1]
             if posCursor[0] < 0 or posCursor[0] >= BoardSize[0] or posCursor[1] < 0 or posCursor[1] >= BoardSize[1]:
                 rayHit = True
-                rayRes.append(['WALL', distance(snake[0], posCursor) / (np.sqrt(BoardSize[0]**2 + BoardSize[1]**2))])
+                rayRes.append(['WALL', 1 - distance(snake[0], posCursor) / (np.sqrt(BoardSize[0]**2 + BoardSize[1]**2))])
             elif posCursor[0] == apple[0] and posCursor[1] == apple[1]:
                 rayHit = True
-                rayRes.append(['APPLE', distance(snake[0], posCursor) / (np.sqrt(BoardSize[0]**2 + BoardSize[1]**2))])
+                rayRes.append(['APPLE', 1 - distance(snake[0], posCursor) / (np.sqrt(BoardSize[0]**2 + BoardSize[1]**2))])
             elif posCursor in snake[1:]:
                 rayHit = True
-                rayRes.append(['TAIL', distance(snake[0], posCursor) / (np.sqrt(BoardSize[0]**2 + BoardSize[1]**2))])
+                rayRes.append(['TAIL', 1 - distance(snake[0], posCursor) / (np.sqrt(BoardSize[0]**2 + BoardSize[1]**2))])
+
     return rayRes
 
 
@@ -76,16 +77,16 @@ class Snake:
                 tailsRays[cursor] = ray[1]
             cursor += 1
         oneHotDirection = [currentDirection == "North", currentDirection == "East", currentDirection == "South", currentDirection == "West"]
-        onHotTailDirection = [0]*4
-        oneHotDirection[self.tailDirection] = 1
-        inputList = appleRays + wallsRays + tailsRays + oneHotDirection + onHotTailDirection
+        oneHotTailDirection = [0]*4
+        oneHotTailDirection[self.tailDirection] = 1
+        inputList = appleRays + wallsRays + tailsRays + oneHotDirection + oneHotTailDirection
         if fetchActivations:
             nnres, activations = self.brain.feedForward(np.asarray(inputList), fetchActivations=fetchActivations)
-            self.tailDirection = oneHotDirection[onHotTailDirection == 1]
+            self.tailDirection = oneHotDirection[oneHotTailDirection == 1]
             return ['North', 'East', 'South', 'West'][np.argmax(nnres)], activations
         else:
             nnres = self.brain.feedForward(np.asarray(inputList))
-            self.tailDirection = oneHotDirection[onHotTailDirection == 1]
+            self.tailDirection = oneHotDirection[oneHotTailDirection == 1]
             return ['North', 'East', 'South', 'West'][np.argmax(nnres)]
 
 

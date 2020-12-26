@@ -41,9 +41,9 @@ class NeuralNetwork:
             for i in range(1, len(topology)):
                 newLayer = np.random.uniform(-Config.StartingWeight, Config.StartingWeight,
                                              size=(topology[i - 1],
-                                                   topology[i])).astype(dtype=np.float128)  # init weights as [-StartingWeight, StartingWeight)
+                                                   topology[i]))    # init weights as [-StartingWeight, StartingWeight)
 
-                newLayer = np.r_[newLayer, [np.random.uniform(Config.BiasStartingWeight[0], Config.BiasStartingWeight[1], topology[i])]].astype(dtype=np.float128)  # biases, init at 1
+                newLayer = np.r_[newLayer, [np.random.uniform(Config.BiasStartingWeight[0], Config.BiasStartingWeight[1], topology[i])]]  # biases, init at 1
                 self.layers.append(newLayer)
         self.hiddenActivationFunction = ReLU  # ActivationFunctions[Config.HiddenActivationFunction] UNDER CONSTRUCTION
         self.outputActivationFunction = Sigmoid     # ActivationFunctions[Config.OutputActivationFunction] UNDER CONSTRUCTION
