@@ -24,6 +24,7 @@ def updateLabel():
 class MainWindow(tk.Tk):
     MovesPerSecond = 30
     InfoLabelText = []
+    killBird = False
 
     def __init__(self, showNet=False, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -51,6 +52,10 @@ class MainWindow(tk.Tk):
                 MainWindow.InfoLabelText[2] = 'MPS: ' + str(MainWindow.MovesPerSecond)
                 updateLabel()
 
+        def kill(event):
+            MainWindow.killBird = True
+
+        self.bind('k', kill)
         self.bind('w', plusMPS)
         self.bind('s', minusMPS)
 
@@ -119,20 +124,21 @@ if __name__ == '__main__':
     #    msForFrame = int((time.time() - startTime) * 1000)
     #    mw.mainCanvas.after(np.maximum(msBetweenFrames - msForFrame, 1), snakeStepAndDrawLoop)
 
-    def birdStepAndDrawLoop():
+    def birdStepAndDrawLoop(killBird=None):
         startTime = time.time()
         msBetweenFrames = int(np.round(1000 / MainWindow.MovesPerSecond))
 
         MainWindow.InfoLabelText[3] = 'Score: ' + str(birdControlPreview.score)
         updateLabel()
 
-        if not birdControlPreview.stepAndDraw():
+        if not birdControlPreview.stepAndDraw() or MainWindow.killBird:
             bestBird = birdManager.bestBird
             birdControlPreview.reset(bestBird)
             MainWindow.InfoLabelText[0] = 'Generation: ' + str(birdManager.generation)
             MainWindow.InfoLabelText[1] = 'best fitness: ' + str(np.round(bestBird.getFitness()))
+            MainWindow.killBird = False
         msForFrame = int((time.time() - startTime) * 1000)
-        mw.mainCanvas.after(np.maximum(msBetweenFrames - msForFrame, 1), birdStepAndDrawLoop)
+        mw.mainCanvas.after(np.maximum(msBetweenFrames - msForFrame, 1), birdStepAndDrawLoop, killBird)
 
 
     # mw.after(1, snakeStepAndDrawLoop)
