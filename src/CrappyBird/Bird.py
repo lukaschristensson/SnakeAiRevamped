@@ -24,3 +24,4 @@ class Bird:
     def calculateFitness(self):
         if self.fitness == -1:
             self.fitness = BirdRunner.runForFitness(self)
+            return self.fitness

@@ -1,6 +1,7 @@
 import tkinter as tk
 import numpy as np
 import SnakeEngine.SnakeManager as SnakeManager
+import SnakeEngine.SnakeRunner as SnakeRunner
 import CrappyBird.BirdManager as BirdManager
 import CrappyBird.BirdRunner as BirdRunner
 import threading
@@ -8,7 +9,7 @@ import time
 
 # config
 CanvasSize = [400, 400]
-NetCanvasSize = [600, 600]
+NetCanvasSize = [500, 500]
 
 
 def updateLabel():
@@ -60,7 +61,6 @@ class MainWindow(tk.Tk):
         self.bind('s', minusMPS)
 
 
-
 class ManualController:
 
     def __init__(self, mainWindow):
@@ -98,31 +98,33 @@ class ManualController:
 
 
 if __name__ == '__main__':
+    gameMode = 'BIRD'  # options are BIRD for CrappyBird© or SNAKE for the classic snake game
 
     mw = MainWindow(True)
     mc = ManualController(mw)
 
     snakeManager = SnakeManager.SnakeManager()
     birdManager = BirdManager.BirdManager()
-    # snakeControlPreview = SnakeRunner.ControllerPreview(snakeManager.bestSnake, mw.mainCanvas, CanvasSize, mw.netCanvas)
-    MainWindow.InfoLabelText.append('Generation: 0')
-    MainWindow.InfoLabelText.append('best fitness: 0')
+    snakeControlPreview = SnakeRunner.ControllerPreview(snakeManager.bestSnake, mw.mainCanvas, CanvasSize, mw.netCanvas)
+    MainWindow.InfoLabelText.append('Best of generation: 0')
+    MainWindow.InfoLabelText.append('fitness: 0')
     MainWindow.InfoLabelText.append('MPS: ' + str(MainWindow.MovesPerSecond))
 
     birdControlPreview = BirdRunner.ControllerReview(birdManager.bestBird, mw.mainCanvas, CanvasSize, mw.netCanvas)
     MainWindow.InfoLabelText.append('Score: ' + str(birdControlPreview.score))
 
-    # def snakeStepAndDrawLoop():
-    #    startTime = time.time()
-    #    if not snakeControlPreview.stepAndDraw():
-    #        bestSnake = snakeManager.bestSnake
-    #        snakeControlPreview.reset(bestSnake)
-    #        mw.infoLabel.config(text=
-    #                            'Generation: ' + str(snakeManager.generation) + ' || ' +
-    #                            'best fitness: ' + str(np.round(bestSnake.getFitness()))
-    #                            )
-    #    msForFrame = int((time.time() - startTime) * 1000)
-    #    mw.mainCanvas.after(np.maximum(msBetweenFrames - msForFrame, 1), snakeStepAndDrawLoop)
+
+    def snakeStepAndDrawLoop():
+        startTime = time.time()
+        msBetweenFrames = int(np.round(1000 / MainWindow.MovesPerSecond))
+        if not snakeControlPreview.stepAndDraw():
+            bestSnake = snakeManager.bestSnake
+            snakeControlPreview.reset(bestSnake)
+            MainWindow.InfoLabelText[0] = 'Best of generation: ' + str(snakeManager.generation)
+            MainWindow.InfoLabelText[1] = 'fitness: ' + str(np.round(bestSnake.getFitness()))
+        msForFrame = int((time.time() - startTime) * 1000)
+        mw.mainCanvas.after(np.maximum(msBetweenFrames - msForFrame, 1), snakeStepAndDrawLoop)
+
 
     def birdStepAndDrawLoop(killBird=None):
         startTime = time.time()
@@ -132,22 +134,32 @@ if __name__ == '__main__':
         updateLabel()
 
         if not birdControlPreview.stepAndDraw() or MainWindow.killBird:
-            bestBird = birdManager.bestBird
+            if birdManager.perfectBird:
+                bestBird = birdManager.perfectBird
+            else:
+                bestBird = birdManager.bestBird
             birdControlPreview.reset(bestBird)
-            MainWindow.InfoLabelText[0] = 'Generation: ' + str(birdManager.generation)
-            MainWindow.InfoLabelText[1] = 'best fitness: ' + str(np.round(bestBird.getFitness()))
+            MainWindow.InfoLabelText[0] = 'Best of generation: ' + str(birdManager.generation)
+            fitness = np.round(bestBird.getFitness())
+            if fitness <= 999999:
+                MainWindow.InfoLabelText[1] = 'fitness: ' + str(fitness)
+            else:
+                MainWindow.InfoLabelText[1] = 'fitness: perfect(>1m)'
             MainWindow.killBird = False
         msForFrame = int((time.time() - startTime) * 1000)
         mw.mainCanvas.after(np.maximum(msBetweenFrames - msForFrame, 1), birdStepAndDrawLoop, killBird)
 
-
-    # mw.after(1, snakeStepAndDrawLoop)
-    snakeT = threading.Thread(target=snakeManager.runPopulation)
-    snakeT.setDaemon(True)
-    # snakeT.start()
-    mw.after(1, birdStepAndDrawLoop)
-    birdT = threading.Thread(target=birdManager.runPopulation)
-    birdT.setDaemon(True)
-    birdT.start()
+    if gameMode == 'SNAKE':
+        mw.title('Snake AI')
+        mw.after(1, snakeStepAndDrawLoop)
+        snakeT = threading.Thread(target=snakeManager.runPopulation)
+        snakeT.setDaemon(True)
+        snakeT.start()
+    elif gameMode == 'BIRD':
+        mw.title('CrappyBird© AI')
+        mw.after(1, birdStepAndDrawLoop)
+        birdT = threading.Thread(target=birdManager.runPopulation)
+        birdT.setDaemon(True)
+        birdT.start()
 
     mw.mainloop()

@@ -39,7 +39,7 @@ def runForFitness(controller):
         newPillar = [(i + 1) * SpaceBetweenPillars, np.random.uniform(-MaxGapDeviation, MaxGapDeviation)]
         pillars.append(newPillar)
 
-    while not anyHit(pillars, birdPos):
+    while not anyHit(pillars, birdPos) and score <= 1000000:    # 1m points is considered a perfect bird
         score += 1
         if pillars[0][0] < 0:    # delete all pillars that are off screen and replace them with new ones
             del pillars[0]
@@ -157,8 +157,10 @@ class ControllerReview:
         layerXPos = netCanvas.winfo_width() / (layerCount + 1)
 
         # largest y offset found to create the largest orb size possible while still fitting in all the orbs in every layer
+        maxOrbSize = 40
         largestLayerYPos = netCanvas.winfo_height() / (largestColumn + 1)
         orbsSize = min(layerXPos, largestLayerYPos) / 1.1
+        orbsSize = np.minimum(orbsSize, maxOrbSize)
 
         layerYPos = []
         # get the y offset for each orb in layer i to space them evenly
@@ -200,6 +202,8 @@ class ControllerReview:
                 # activationStrength is calculated as a percentage of the largest activation
                 nodeActivationStrength = int(np.round(
                     255 * ((activations[i][j] / np.max(activations[i])) if np.max(activations[i]) != 0 else 0)))
+                if len(activations[i]) == 1:
+                    nodeActivationStrength = 255*(activations[i][0] > 0.5)
                 if j == len(activations[i]) - 1 and i != layerCount - 1:
                     fill = ColorFromrgb((0, 0, nodeActivationStrength))
                 else:

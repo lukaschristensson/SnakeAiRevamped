@@ -28,7 +28,10 @@ def runGeneration(birdPopulation, returnQueue, mutationFunction, crossoverFuncti
         birdPopulation.append(Bird.Bird(mutationFunction(childNet4)))
 
     for s in birdPopulation:
-        s.calculateFitness()
+        f = s.calculateFitness()
+        if f and f >= 1000000:
+            returnQueue.put([s, 'perfect'])
+            return
     for s in [s for s in birdPopulation if s.lifeSpan < 0]:
         birdPopulation.remove(s)
     returnQueue.put(selectionFunction(birdPopulation, GAConfig.PopulationSize))
@@ -40,9 +43,10 @@ class BirdManager:
         assert self.populationSize % 2 == 0
         self.birdPopulation = []
         for _ in range(self.populationSize):
-            self.birdPopulation.append(Bird.Bird(Network.NeuralNetwork(topology=[3, 6, 4, 1])))
+            self.birdPopulation.append(Bird.Bird(Network.NeuralNetwork(topology=[3, 4, 3, 1])))
         self.bestBird = self.birdPopulation[0]
         self.bestFitness = 0
+        self.perfectBird = None
 
     generation = 0
     maxBitUsage = 0
@@ -52,7 +56,7 @@ class BirdManager:
         self.crossoverFunction = CrossOver.CrossOverFunctions[GAConfig.CrossoverFunction]
         self.selectionFunction = Selection.SelectionFunctions[GAConfig.SelectionFunction]
 
-        while True:
+        while not self.perfectBird:
             print('Generation ', BirdManager.generation, ': ', end='')
             self.startTime = time.time()
             self.returnQueue = multiprocessing.Queue()
@@ -63,7 +67,12 @@ class BirdManager:
                                               self.selectionFunction
                                               ))
             p.start()
-            self.birdPopulation = self.returnQueue.get()
+            res = self.returnQueue.get()
+            if res[1] == 'perfect':
+                self.perfectBird = res[0]
+                self.bestBird = res[0]
+            else:
+                self.birdPopulation = res
             p.join()
             self.birdPopulation.sort(key=Bird.Bird.getFitness, reverse=True)
             self.bestBird = self.birdPopulation[0]
@@ -78,3 +87,4 @@ class BirdManager:
                     SnakeManager.maxBitUsage = self.currentUsage
                 print("     mem bits used= ", str(np.floor(self.currentUsage / 1000000)) + " mb", "::", "max= ",
                       str(np.floor(SnakeManager.maxBitUsage / 1000000)) + " mb")
+        print(' finished, the perfect bird is found')
