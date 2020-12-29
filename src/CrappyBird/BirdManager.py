@@ -74,8 +74,9 @@ class BirdManager:
             else:
                 self.birdPopulation = res
             p.join()
-            self.birdPopulation.sort(key=Bird.Bird.getFitness, reverse=True)
-            self.bestBird = self.birdPopulation[0]
+            p.close()
+            self.birdPopulation.sort(key=Bird.Bird.getFitness)
+            self.bestBird = self.birdPopulation[-1]
             self.bestFitness = self.bestBird.getFitness()
             for s in self.birdPopulation:
                 s.lifeSpan -= 1

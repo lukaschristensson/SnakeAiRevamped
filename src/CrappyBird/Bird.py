@@ -5,8 +5,11 @@ import CrappyBird.BirdRunner as BirdRunner
 
 
 class Bird:
-    def __init__(self, brain=Network.NeuralNetwork()):
-        self.brain = brain
+    def __init__(self, brain=None):
+        if brain:
+            self.brain = brain
+        else:
+            self.brain = Network.NeuralNetwork()
         self.lifeSpan = GAConfig.LifeSpan
         self.fitness = -1
 

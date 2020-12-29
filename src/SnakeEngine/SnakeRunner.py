@@ -86,7 +86,7 @@ def checkRules(snake=None, apple=None, stepsTakenSinceApple=None, mute=True):
 
 
 def runForFitness(controller):
-    currentDirection = "North"  # init currentDirection
+    currentDirection = np.random.choice(list(Directions.keys()))  # init currentDirection
     stepsTaken = 0  # init a counter to keep track of the amount of steps taken
     stepsTakenSinceApple = 0
     snake = [[int(np.round(BoardSize[0] / 2)), int(np.round(BoardSize[1] / 2))]]  # set the starting point
@@ -112,11 +112,12 @@ tick every time stepAndDraw is called, which'll return whether or not any rules 
 
 
 class ControllerPreview:
-    def __init__(self, controller, canvas, CanvasSize, netCanvas=None):
+    def __init__(self, controller, canvas, CanvasSize, netCanvas=None, showRays=False):
         self.canvas = canvas
         self.netCanvas = netCanvas
         self.CanvasSize = CanvasSize
         self.blockSize = np.min(CanvasSize) / np.max(BoardSize)
+        self.showRays = showRays
 
         self.controller = controller
         self.snake = [[int(np.round(BoardSize[0] / 2)), int(np.round(BoardSize[1] / 2))]]  # set the starting point
@@ -125,7 +126,7 @@ class ControllerPreview:
         for i in range(SnakeInitSize - 1):  # add tail pieces, [-1, -1] is for all intents and purposes non initialized
             self.snake.append([-1, -1])
 
-        self.currentDirection = "North"  # init currentDirection
+        self.currentDirection = np.random.choice(list(Directions.keys()))  # init currentDirection
         self.apple = generateApplePos(self.snake)  # init apple to a random point
 
     def stepAndDraw(self):
@@ -145,20 +146,26 @@ class ControllerPreview:
             self.canvas.delete(tk.ALL)
             if self.netCanvas:
                 self.netCanvas.delete(tk.ALL)
+
             self.drawGame()
             if self.netCanvas:
                 self.drawNet(activations, self.netCanvas, self.controller.brain.layers.copy())
+                # def drawRays(canvas, blockSize, BoardSize, snake, apple):
+            if self.showRays:
+                self.controller.drawRays(self.canvas, self.blockSize, BoardSize, self.snake, self.apple)
+
             if rulesRes == 'Apple':
                 self.stepsTakenSinceApple = 0
             return True
         return False
 
-    def reset(self, newController):
+    def reset(self, newController=None):
+        if newController:
+            self.controller = newController
         self.snake = [[int(np.round(BoardSize[0] / 2)), int(np.round(BoardSize[1] / 2))]]  # set the starting point
         for i in range(SnakeInitSize - 1):  # add tail pieces, [-1, -1] is for all intents and purposes non initialized
             self.snake.append([-1, -1])
-        self.controller = newController
-        self.currentDirection = "North"  # reset currentDirection
+        self.currentDirection = np.random.choice(list(Directions.keys()))  # reset currentDirection
         self.apple = generateApplePos(self.snake)  # reset apple to a random point
         self.stepsTaken = 0
         self.stepsTakenSinceApple = 0
@@ -189,6 +196,7 @@ class ControllerPreview:
                                fill=fill)
 
         def ColorFromrgb(rgb):
+            rgb = (rgb[0] * (rgb[0] >= 0), rgb[1] * (rgb[1] >= 0), rgb[2] * (rgb[2] >= 0))
             return "#%02x%02x%02x" % rgb
 
         # make the background gray
@@ -229,7 +237,7 @@ class ControllerPreview:
                 rangeList = []
                 for k in range(t.shape[1]):
                     rangeList.append(k)
-                np.random.shuffle(rangeList)
+                np.random.default_rng().shuffle(rangeList)
                 for j in rangeList:
                     posOfFromOrb = getOrbPos(tIndex, i)
                     posOfToOrb = getOrbPos(tIndex + 1, j)
@@ -248,7 +256,6 @@ class ControllerPreview:
         # draw activation orbs
         for i in range(layerCount):
             for j in range(len(activations[i])):
-                fill = ""
                 # activationStrength is calculated as a percentage of the largest activation
                 nodeActivationStrength = int(np.round(255 * ((activations[i][j] / np.max(activations[i])) if np.max(activations[i]) != 0 else 0)))
                 if j == len(activations[i]) - 1 and i != layerCount - 1:

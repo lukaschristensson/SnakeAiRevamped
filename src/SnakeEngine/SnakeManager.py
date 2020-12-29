@@ -1,5 +1,4 @@
 import SnakeEngine.Snake as Snake
-import NeuralNet.Config as NNConfig
 import GeneticAlgorithm.Config as GAConfig
 import GeneticAlgorithm.CrossOver as CrossOver
 import GeneticAlgorithm.Mutation as Mutation
@@ -38,9 +37,7 @@ class SnakeManager:
         assert self.populationSize % 2 == 0
         self.snakePopulation = []
         for _ in range(self.populationSize):
-            addedSnake = Snake.Snake()
-            self.snakePopulation.append(addedSnake)
-            addedSnake.calculateFitness()
+            self.snakePopulation.append(Snake.Snake().calculateFitness())
         self.bestSnake = self.snakePopulation[0]
         self.bestFitness = 0
 
@@ -64,13 +61,13 @@ class SnakeManager:
             p.start()
             self.snakePopulation = self.returnQueue.get()
             p.join()
-            self.snakePopulation.sort(key=Snake.Snake.getFitness, reverse=True)
-            self.bestSnake = self.snakePopulation[0]
+            p.close()
+            self.snakePopulation.sort(key=Snake.Snake.getFitness)
+            self.bestSnake = self.snakePopulation[-1]
             self.bestFitness = self.bestSnake.getFitness()
             for s in self.snakePopulation:
                 s.lifeSpan -= 1
             print(str(np.round((time.time() - self.startTime), 4)) + "s", "::", "Best fitness =", self.bestFitness)
-            print(np.sum(self.bestSnake.brain.layers[0]))
             SnakeManager.generation += 1
             if False:
                 self.currentUsage = psutil.Process(os.getpid()).memory_info().rss
